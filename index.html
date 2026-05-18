@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Diário">
+<meta name="theme-color" content="#0f0f0f">
+<title>Diário — Recomposição</title>
+<link rel="apple-touch-icon" href="https://em-content.zobj.net/source/apple/354/memo_1f4dd.png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Epilogue:wght@400;500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f0f;--s1:#1c1c1c;--s2:#242424;--s3:#2e2e2e;
+  --bd:#383838;--ink:#f5f2ed;--mu:#888;--mu2:#bfbcb7;
+  --or:#ff6b2b;--og:rgba(255,107,43,.13);
+  --gr:#3ddc84;--gg:rgba(61,220,132,.13);
+  --bl:#5ab0e8;--bg2:rgba(90,176,232,.13);
+  --am:#f5a623;--ag:rgba(245,166,35,.13);
+  --rd:#e05c5c;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:var(--bg);color:var(--ink);font-family:'Epilogue',sans-serif;min-height:100vh;padding-bottom:90px;-webkit-text-size-adjust:100%;}
+input,textarea,button{font-family:'Epilogue',sans-serif;font-size:16px;}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+textarea{resize:none;}
+button{cursor:pointer;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(15,15,15,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);}
+.nav-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--ink);}
+.logo span{color:var(--or);}
+.tab-group{display:flex;gap:2px;background:var(--s2);border-radius:9px;padding:3px;}
+.tab{font-family:'Fira Code',monospace;font-size:11px;padding:6px 12px;border-radius:7px;border:none;background:transparent;color:var(--mu2);letter-spacing:.5px;}
+.tab.on{background:var(--s3);color:var(--or);}
+
+/* LAYOUT */
+.wrap{max-width:600px;margin:0 auto;padding:16px 14px;}
+.page{display:none;}.page.on{display:block;}
+
+/* DATE NAV */
+.date-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.d-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--bd);background:var(--s2);color:var(--mu2);font-size:22px;display:flex;align-items:center;justify-content:center;}
+.d-center{text-align:center;}
+.d-label{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:var(--ink);}
+.d-sub{font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);margin-top:2px;letter-spacing:1px;}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:16px;margin-bottom:10px;overflow:hidden;}
+.card-h{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;user-select:none;}
+.card-hl{display:flex;align-items:center;gap:10px;}
+.card-icon{font-size:20px;line-height:1;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--ink);}
+.card-hr{display:flex;align-items:center;gap:8px;}
+.badge{font-family:'Fira Code',monospace;font-size:12px;padding:4px 11px;border-radius:99px;font-weight:500;}
+.b-gr{background:var(--gg);color:var(--gr);}
+.b-or{background:var(--og);color:var(--or);}
+.b-bl{background:var(--bg2);color:var(--bl);}
+.b-am{background:var(--ag);color:var(--am);}
+.chev{font-size:12px;color:var(--mu2);transition:transform .25s;display:inline-block;}
+.chev.open{transform:rotate(180deg);}
+.card-b{display:none;border-top:1px solid var(--bd);}
+.card-b.open{display:block;}
+.pad{padding:16px;}
+
+/* LABEL */
+.lbl{font-family:'Fira Code',monospace;font-size:10px;letter-spacing:1.5px;color:var(--mu2);text-transform:uppercase;margin-bottom:7px;display:block;}
+
+/* WATER */
+.bottles{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+.bottle{width:52px;height:64px;border-radius:11px;border:1px solid var(--bd);background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;opacity:.35;transition:all .2s;}
+.bottle.on{background:var(--bg2);border-color:var(--bl);opacity:1;}
+.bottle span{font-family:'Fira Code',monospace;font-size:9px;color:var(--mu2);}
+.bottle.on span{color:var(--bl);}
+.bar-track{height:6px;background:var(--s3);border-radius:99px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s;}
+
+/* DTYPE BUTTONS */
+.dtype-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.dtype{font-family:'Fira Code',monospace;font-size:12px;padding:8px 13px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--mu2);}
+.dtype.sg{background:var(--gg);border-color:var(--gr);color:var(--gr);}
+.dtype.sc{background:var(--og);border-color:var(--or);color:var(--or);}
+.dtype.sa{background:var(--bg2);border-color:var(--bl);color:var(--bl);}
+.dtype.sd{background:var(--s3);border-color:var(--mu);color:var(--mu2);}
+
+/* GYM OPT */
+.opt-row{display:flex;gap:7px;margin-bottom:14px;}
+.opt-btn{flex:1;padding:11px 4px;border-radius:10px;border:1px solid var(--bd);background:var(--s2);color:var(--mu2);text-align:center;}
+.opt-btn.on{background:var(--og);border-color:var(--or);color:var(--or);}
+.opt-letter{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;display:block;}
+.opt-sub{font-family:'Fira Code',monospace;font-size:9px;display:block;margin-top:3px;line-height:1.3;color:var(--mu);}
+.opt-btn.on .opt-sub{color:var(--or);opacity:.85;}
+
+/* SUGG BLOCK */
+.sugg{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px;}
+.sugg-title{font-family:'Fira Code',monospace;font-size:10px;letter-spacing:1.5px;color:var(--or);text-transform:uppercase;margin-bottom:12px;}
+.sugg-ex{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.sugg-ex:last-child{border-bottom:none;}
+.sugg-ex-name{font-size:14px;color:var(--ink);font-weight:500;}
+.sugg-ex-det{font-family:'Fira Code',monospace;font-size:12px;color:var(--am);}
+
+/* EX LOG */
+.log-sep{border-top:1px solid var(--bd);padding-top:14px;margin-top:4px;}
+.ex-hdrs{display:grid;grid-template-columns:1fr 54px 54px 62px 30px;gap:5px;padding:0 4px;margin-bottom:5px;}
+.ex-hdr{font-family:'Fira Code',monospace;font-size:9px;color:var(--mu2);letter-spacing:1px;text-transform:uppercase;text-align:center;}
+.ex-hdr:first-child{text-align:left;}
+.ex-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.ex-row{display:grid;grid-template-columns:1fr 54px 54px 62px 30px;gap:5px;align-items:center;background:var(--s3);border:1px solid var(--bd);border-radius:10px;padding:10px 11px;}
+.ex-name{background:transparent;border:none;color:var(--ink);font-size:14px;outline:none;width:100%;}
+.ex-name::placeholder{color:var(--mu);}
+.ex-num{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:7px 3px;color:var(--ink);font-family:'Fira Code',monospace;font-size:13px;text-align:center;outline:none;width:100%;}
+.ex-num:focus{border-color:var(--or);}
+.ex-del{width:28px;height:28px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--mu2);font-size:16px;display:flex;align-items:center;justify-content:center;}
+.add-ex{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px dashed var(--bd);background:transparent;color:var(--mu2);font-family:'Fira Code',monospace;font-size:12px;width:100%;}
+
+/* CARDIO */
+.cardio-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;}
+.cf-label{font-family:'Fira Code',monospace;font-size:9px;color:var(--mu2);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.cf-inp{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px;color:var(--ink);font-family:'Fira Code',monospace;font-size:14px;outline:none;}
+
+/* MEAL BLOCK */
+.meal-block{border-bottom:1px solid var(--bd);}
+.meal-block:last-of-type{border-bottom:none;}
+.meal-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;}
+.meal-hl{display:flex;align-items:center;gap:11px;}
+.m-chk{width:26px;height:26px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gr);flex-shrink:0;transition:all .2s;}
+.m-chk.on{background:var(--gg);border-color:var(--gr);}
+.meal-info .mname{font-weight:600;font-size:15px;color:var(--ink);}
+.meal-info .mtime{font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);}
+.meal-hr{display:flex;align-items:center;gap:8px;}
+.meal-kcal{font-family:'Fira Code',monospace;font-size:12px;color:var(--am);}
+.m-chev{font-size:12px;color:var(--mu2);transition:transform .25s;display:inline-block;}
+.m-chev.open{transform:rotate(180deg);}
+.meal-b{display:none;padding:0 16px 15px;}
+.meal-b.open{display:block;}
+
+/* MEAL OPTS */
+.meal-opts{display:flex;gap:6px;margin-bottom:12px;}
+.meal-opt{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--mu2);text-align:center;}
+.meal-opt.on{background:var(--og);border-color:var(--or);color:var(--or);}
+.meal-opt .mo-label{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;display:block;}
+.meal-opt .mo-desc{font-family:'Fira Code',monospace;font-size:9px;display:block;margin-top:2px;line-height:1.3;color:var(--mu);}
+.meal-opt.on .mo-desc{color:var(--or);opacity:.85;}
+.meal-opt-content{display:none;}
+.meal-opt-content.on{display:block;}
+
+/* FOODS */
+.food-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.food-row:last-of-type{border-bottom:none;}
+.food-name{font-size:14px;color:var(--ink);flex:1;padding-right:8px;line-height:1.4;}
+.food-qty{font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);white-space:nowrap;}
+.food-prot{font-family:'Fira Code',monospace;font-size:13px;color:var(--gr);font-weight:500;min-width:36px;text-align:right;}
+.food-tip{font-size:13px;color:var(--am);background:var(--ag);border-radius:8px;padding:9px 12px;margin-top:9px;line-height:1.6;}
+
+/* ALT */
+.alt-area{margin-top:12px;border-top:1px solid var(--bd);padding-top:11px;}
+.alt-inp{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:10px 12px;color:var(--ink);font-size:14px;outline:none;line-height:1.5;}
+.alt-inp:focus{border-color:var(--am);}
+.alt-inp::placeholder{color:var(--mu);}
+
+/* MACROS */
+.mac-pad{padding:16px;border-top:1px solid var(--bd);}
+.mac-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+.mac-box{background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:11px 5px;text-align:center;}
+.mac-lbl{font-family:'Fira Code',monospace;font-size:9px;color:var(--mu2);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.mac-inp{width:100%;background:transparent;border:none;color:var(--ink);font-family:'Syne',sans-serif;font-weight:700;font-size:21px;text-align:center;outline:none;}
+.mac-inp::placeholder{color:var(--s3);}
+.mac-unit{font-family:'Fira Code',monospace;font-size:9px;margin-top:2px;}
+.mbar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.mbar-lbl{font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);width:56px;flex-shrink:0;}
+.mbar-track{flex:1;height:8px;background:var(--s3);border-radius:99px;overflow:hidden;}
+.mbar-fill{height:100%;border-radius:99px;transition:width .4s;}
+.mbar-val{font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);width:72px;text-align:right;flex-shrink:0;}
+
+/* PESO */
+.w-row{display:flex;align-items:center;gap:16px;}
+.w-inp{background:var(--s2);border:1px solid var(--bd);border-radius:11px;padding:13px 15px;color:var(--ink);font-family:'Syne',sans-serif;font-weight:800;font-size:30px;width:145px;outline:none;}
+.w-inp:focus{border-color:var(--am);}
+.w-meta{margin-left:auto;text-align:right;}
+.w-goal{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--gr);}
+.w-diff{font-family:'Fira Code',monospace;font-size:12px;color:var(--mu2);margin-top:4px;}
+
+/* NOTA */
+.nota-ta{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:11px;padding:13px;color:var(--ink);font-size:15px;outline:none;min-height:90px;line-height:1.6;}
+.nota-ta:focus{border-color:var(--or);}
+.nota-ta::placeholder{color:var(--mu);}
+.rate-row{display:flex;gap:6px;margin:10px 0;}
+.rate-btn{flex:1;padding:10px 3px;border-radius:10px;border:1px solid var(--bd);background:var(--s2);font-size:20px;text-align:center;}
+.rate-btn.on{border-color:var(--or);background:var(--og);}
+.rate-lbl{font-family:'Fira Code',monospace;font-size:8px;color:var(--mu2);display:block;margin-top:3px;}
+.sono-inp{background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:10px 13px;color:var(--ink);font-family:'Fira Code',monospace;font-size:16px;width:95px;outline:none;}
+.sono-inp:focus{border-color:var(--am);}
+
+/* SAVE */
+.save-btn{width:100%;padding:16px;border-radius:13px;border:none;background:var(--or);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-top:8px;}
+.save-btn:active{opacity:.85;}
+.save-msg{text-align:center;font-family:'Fira Code',monospace;font-size:13px;color:var(--gr);margin-top:10px;min-height:16px;}
+
+/* HIST */
+.h-empty{text-align:center;padding:48px 0;color:var(--mu2);font-family:'Fira Code',monospace;font-size:13px;}
+.h-card{background:var(--s1);border:1px solid var(--bd);border-radius:13px;margin-bottom:9px;overflow:hidden;}
+.h-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;}
+.h-date{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--ink);}
+.h-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.hchip{font-family:'Fira Code',monospace;font-size:10px;padding:3px 8px;border-radius:99px;}
+.hchip.g{background:var(--gg);color:var(--gr);}
+.hchip.o{background:var(--og);color:var(--or);}
+.hchip.b{background:var(--bg2);color:var(--bl);}
+.hchip.a{background:var(--ag);color:var(--am);}
+.h-body{display:none;border-top:1px solid var(--bd);padding:13px 16px;}
+.h-body.open{display:block;}
+.h-sec{margin-bottom:10px;}
+.h-stitle{font-family:'Fira Code',monospace;font-size:9px;letter-spacing:2px;color:var(--mu2);text-transform:uppercase;margin-bottom:7px;}
+.h-ex{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;color:var(--ink);}
+.h-ex:last-child{border-bottom:none;}
+
+/* RESUMO */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.dash-box{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:15px;}
+.dash-lbl{font-family:'Fira Code',monospace;font-size:9px;letter-spacing:2px;color:var(--mu2);text-transform:uppercase;margin-bottom:6px;}
+.dash-val{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;line-height:1;}
+.dash-sub{font-size:12px;color:var(--mu2);margin-top:4px;}
+.streak-row{display:flex;gap:5px;}
+.s-day{flex:1;height:32px;border-radius:7px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:var(--mu2);}
+.s-day.done{background:var(--gg);border-color:var(--gr);color:var(--gr);}
+.s-day.today{border-color:var(--or);color:var(--or);}
+.wl-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.wl-row:last-child{border-bottom:none;}
+
+/* BACKUP */
+.bk-code{width:100%;background:var(--s3);border:1px solid var(--gr);border-radius:9px;padding:11px 13px;color:var(--gr);font-family:'Fira Code',monospace;font-size:11px;outline:none;line-height:1.5;}
+.bk-paste{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:11px 13px;color:var(--ink);font-family:'Fira Code',monospace;font-size:11px;outline:none;line-height:1.5;}
+.bk-paste:focus{border-color:var(--am);}
+.bk-paste::placeholder{color:var(--mu);}
+.bk-tip{font-family:'Fira Code',monospace;font-size:11px;color:var(--am);margin-top:6px;}
+.bk-msg{text-align:center;font-family:'Fira Code',monospace;font-size:13px;color:var(--gr);margin-top:12px;min-height:16px;line-height:1.6;}
+.bk-info{background:var(--s2);border-radius:10px;padding:13px 14px;margin-top:14px;}
+.btn{width:100%;padding:14px;border-radius:11px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;}
+.btn-gr{background:var(--gr);color:#0f0f0f;}
+.btn-s2{background:var(--s2);color:var(--ink);border:1px solid var(--bd) !important;}
+.btn+.btn{margin-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo">DIÁRIO<span>.</span></div>
+    <div class="tab-group">
+      <button class="tab on" onclick="goPage('hoje',this)">HOJE</button>
+      <button class="tab" onclick="goPage('hist',this)">HISTÓRICO</button>
+      <button class="tab" onclick="goPage('resumo',this)">RESUMO</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HOJE -->
+<div id="pg-hoje" class="page on">
+<div class="wrap">
+
+  <div class="date-nav">
+    <button class="d-btn" onclick="changeDay(-1)">‹</button>
+    <div class="d-center">
+      <div class="d-label" id="d-label">—</div>
+      <div class="d-sub" id="d-sub">—</div>
+    </div>
+    <button class="d-btn" onclick="changeDay(1)">›</button>
+  </div>
+
+  <!-- ÁGUA -->
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">💧</span><span class="card-title">Água</span></div>
+      <div class="card-hr"><span class="badge b-bl" id="w-badge">0L / 4L</span><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b">
+      <div class="pad">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+          <span id="w-liters" style="font-family:'Syne',sans-serif;font-weight:700;font-size:26px;color:var(--bl)">0 L</span>
+          <span style="font-family:'Fira Code',monospace;font-size:12px;color:var(--mu2)">Meta 4L · 750ml/garrafa</span>
+        </div>
+        <div class="bottles" id="bottles"></div>
+        <div class="bar-track"><div class="bar-fill" id="w-bar" style="width:0%;background:var(--bl)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TREINO -->
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">🏋️</span><span class="card-title">Treino</span></div>
+      <div class="card-hr"><span class="badge b-gr" id="t-badge">—</span><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b">
+      <div class="pad">
+        <span class="lbl">TIPO DO DIA</span>
+        <div class="dtype-row">
+          <button class="dtype" onclick="setDtype('gym',this)">🏋️ Musculação</button>
+          <button class="dtype" onclick="setDtype('cardio',this)">🏃 Cardio</button>
+          <button class="dtype" onclick="setDtype('ambos',this)">🏋️+🏃 Ambos</button>
+          <button class="dtype" onclick="setDtype('descanso',this)">😴 Descanso</button>
+        </div>
+
+        <div id="gym-sec" style="display:none">
+          <span class="lbl">ESCOLHA SEU TREINO</span>
+          <div class="opt-row">
+            <button class="opt-btn" onclick="setGymOpt('A',this)"><span class="opt-letter">A</span><span class="opt-sub">Peito+Tríceps+Ombro</span></button>
+            <button class="opt-btn" onclick="setGymOpt('B',this)"><span class="opt-letter">B</span><span class="opt-sub">Costas+Bíceps</span></button>
+            <button class="opt-btn" onclick="setGymOpt('C',this)"><span class="opt-letter">C</span><span class="opt-sub">Perna+Glúteo+Core</span></button>
+          </div>
+          <div id="gym-sugg"></div>
+          <div class="log-sep">
+            <span class="lbl">📋 ANOTE O QUE FEZ (pesos reais)</span>
+            <div class="ex-hdrs">
+              <span class="ex-hdr">Exercício</span><span class="ex-hdr">Séries</span>
+              <span class="ex-hdr">Reps</span><span class="ex-hdr">Peso kg</span><span class="ex-hdr"></span>
+            </div>
+            <div class="ex-list" id="ex-list"></div>
+            <button class="add-ex" onclick="addEx()">+ Adicionar exercício</button>
+          </div>
+        </div>
+
+        <div id="cardio-sec" style="display:none">
+          <div class="sugg" style="margin-bottom:12px">
+            <div class="sugg-title">CARDIO — ZONA 2</div>
+            <div style="font-size:14px;color:var(--mu2);line-height:1.7"><strong style="color:var(--ink)">Caminhada rápida ou Bike</strong><br>40–45 min · Zona 2 · 130–140 bpm</div>
+          </div>
+          <span class="lbl">📋 SEU CARDIO DE HOJE</span>
+          <div class="cardio-grid">
+            <div><span class="cf-label">Tipo</span><input class="cf-inp" id="c-tipo" placeholder="Caminhada…"></div>
+            <div><span class="cf-label">Duração (min)</span><input class="cf-inp" id="c-dur" type="number" placeholder="40"></div>
+            <div><span class="cf-label">BPM / Zona</span><input class="cf-inp" id="c-bpm" placeholder="135bpm"></div>
+          </div>
+        </div>
+
+        <div id="descanso-sec" style="display:none">
+          <div class="sugg">
+            <div class="sugg-title">😴 DIA DE DESCANSO</div>
+            <div style="font-size:14px;color:var(--mu2);line-height:1.7">Foque em <strong style="color:var(--ink)">hidratação, sono e alimentação limpa</strong>. O músculo cresce no descanso.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFEIÇÕES -->
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">🍽️</span><span class="card-title">Refeições</span></div>
+      <div class="card-hr"><span class="badge b-or" id="m-badge">0/6</span><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b">
+      <div id="meal-list"></div>
+      <div class="mac-pad">
+        <span class="lbl">MACROS DO DIA</span>
+        <div class="mac-grid">
+          <div class="mac-box"><div class="mac-lbl">Proteína</div><input class="mac-inp" id="mp" type="number" placeholder="0" oninput="updMacros()"><div class="mac-unit" style="color:var(--gr)">g</div></div>
+          <div class="mac-box"><div class="mac-lbl">Carbo</div><input class="mac-inp" id="mc" type="number" placeholder="0" oninput="updMacros()"><div class="mac-unit" style="color:var(--am)">g</div></div>
+          <div class="mac-box"><div class="mac-lbl">Gordura</div><input class="mac-inp" id="mg" type="number" placeholder="0" oninput="updMacros()"><div class="mac-unit" style="color:var(--bl)">g</div></div>
+          <div class="mac-box"><div class="mac-lbl">Kcal</div><input class="mac-inp" id="mk" type="number" placeholder="0" oninput="updMacros()"><div class="mac-unit" style="color:var(--or)">kcal</div></div>
+        </div>
+        <div class="mbar-row"><span class="mbar-lbl">Proteína</span><div class="mbar-track"><div class="mbar-fill" id="bp" style="width:0%;background:var(--gr)"></div></div><span class="mbar-val" id="vp">0/205g</span></div>
+        <div class="mbar-row"><span class="mbar-lbl">Carbo</span><div class="mbar-track"><div class="mbar-fill" id="bc" style="width:0%;background:var(--am)"></div></div><span class="mbar-val" id="vc">0/265g</span></div>
+        <div class="mbar-row"><span class="mbar-lbl">Gordura</span><div class="mbar-track"><div class="mbar-fill" id="bg" style="width:0%;background:var(--bl)"></div></div><span class="mbar-val" id="vg">0/86g</span></div>
+        <div class="mbar-row"><span class="mbar-lbl">Kcal</span><div class="mbar-track"><div class="mbar-fill" id="bk" style="width:0%;background:var(--or)"></div></div><span class="mbar-val" id="vk">0/2650</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESO -->
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">⚖️</span><span class="card-title">Peso do Dia</span></div>
+      <div class="card-hr"><span class="badge b-am" id="wp-badge">— kg</span><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b">
+      <div class="pad">
+        <span class="lbl">PESO DE HOJE · JEJUM · MANHÃ</span>
+        <div class="w-row">
+          <input class="w-inp" id="wp-inp" type="number" step="0.1" placeholder="117.0" oninput="updWeight()">
+          <span style="font-family:'Fira Code',monospace;font-size:14px;color:var(--mu2)">kg</span>
+          <div class="w-meta">
+            <div style="font-family:'Fira Code',monospace;font-size:9px;color:var(--mu2);margin-bottom:3px">META</div>
+            <div class="w-goal">100 kg</div>
+            <div class="w-diff" id="w-diff">— faltam</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTA -->
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">📝</span><span class="card-title">Nota do Dia</span></div>
+      <div class="card-hr"><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b">
+      <div class="pad">
+        <span class="lbl">COMO FOI? O QUE MELHORAR?</span>
+        <textarea class="nota-ta" id="d-nota" rows="3" placeholder="Ex: Bati a proteína. Treino A ótimo. Água abaixo. Próxima: mais peso no supino…"></textarea>
+        <span class="lbl" style="margin-top:14px">COMO SE SENTIU?</span>
+        <div class="rate-row" id="rate-row">
+          <button class="rate-btn" onclick="setRate(1,this)">😩<span class="rate-lbl">PÉSSIMO</span></button>
+          <button class="rate-btn" onclick="setRate(2,this)">😕<span class="rate-lbl">RUIM</span></button>
+          <button class="rate-btn" onclick="setRate(3,this)">😐<span class="rate-lbl">OK</span></button>
+          <button class="rate-btn" onclick="setRate(4,this)">🙂<span class="rate-lbl">BOM</span></button>
+          <button class="rate-btn" onclick="setRate(5,this)">💪<span class="rate-lbl">ÓTIMO</span></button>
+        </div>
+        <span class="lbl" style="margin-top:6px">SONO</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input class="sono-inp" id="d-sono" type="number" step="0.5" placeholder="7" min="0" max="12">
+          <span style="font-size:13px;color:var(--mu2)">horas de sono</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="save-btn" onclick="saveDay()">SALVAR DIA</button>
+  <div class="save-msg" id="save-msg"></div>
+
+</div>
+</div>
+
+<!-- HISTÓRICO -->
+<div id="pg-hist" class="page">
+<div class="wrap">
+  <div style="margin-bottom:16px">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--ink)">Histórico</div>
+    <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);margin-top:3px">Todos os dias salvos</div>
+  </div>
+  <div id="hist-list"></div>
+</div>
+</div>
+
+<!-- RESUMO -->
+<div id="pg-resumo" class="page">
+<div class="wrap">
+  <div style="margin-bottom:16px">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--ink)">Resumo</div>
+    <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--mu2);margin-top:3px">Últimos 30 dias</div>
+  </div>
+  <div class="dash-grid" id="dash-grid"></div>
+
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">⚖️</span><span class="card-title">Evolução do Peso</span></div>
+      <div class="card-hr"><span class="badge b-am" id="w-trend">—</span><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b"><div class="pad">
+      <div id="w-stats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div id="w-list"></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">📅</span><span class="card-title">Últimos 7 dias</span></div>
+      <div class="card-hr"><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b"><div class="pad">
+      <span class="lbl">ATIVIDADE DA SEMANA</span>
+      <div class="streak-row" id="streak"></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">📝</span><span class="card-title">Últimas Notas</span></div>
+      <div class="card-hr"><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b"><div class="pad"><div id="r-notes"></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h" onclick="togCard(this)">
+      <div class="card-hl"><span class="card-icon">💾</span><span class="card-title">Backup dos Dados</span></div>
+      <div class="card-hr"><span class="chev">▼</span></div>
+    </div>
+    <div class="card-b"><div class="pad">
+      <div style="font-size:14px;color:var(--mu2);line-height:1.7;margin-bottom:16px">
+        Gere um código com <strong style="color:var(--ink)">todos os seus dados</strong> e cole no <strong style="color:var(--ink)">Notes do iPhone</strong>. O Notes sincroniza com iCloud automaticamente. Para restaurar, cole o código abaixo.
+      </div>
+      <button class="btn btn-gr" onclick="genBackup()" style="margin-bottom:10px">📋 Gerar Código de Backup</button>
+      <div id="bk-code-wrap" style="display:none;margin-bottom:14px">
+        <span class="lbl">COPIE TUDO E COLE NO NOTES</span>
+        <textarea class="bk-code" id="bk-code" rows="5" readonly onclick="this.select()"></textarea>
+        <div class="bk-tip">👆 Toque no texto → Selecionar tudo → Copiar</div>
+      </div>
+      <div style="border-top:1px solid var(--bd);padding-top:14px;margin-top:4px">
+        <span class="lbl">RESTAURAR — COLE O CÓDIGO AQUI</span>
+        <textarea class="bk-paste" id="bk-paste" rows="4" placeholder="Cole aqui o código de backup…"></textarea>
+        <button class="btn btn-s2" onclick="doRestore()" style="margin-top:8px;border:1px solid var(--bd)">⬆ Restaurar Backup</button>
+      </div>
+      <div class="bk-msg" id="bk-msg"></div>
+      <div class="bk-info">
+        <span class="lbl">ROTINA RECOMENDADA</span>
+        <div style="font-size:13px;color:var(--mu2);line-height:1.9">
+          1. Todo <strong style="color:var(--ink)">domingo</strong> → Gerar Código → Copiar → Notes<br>
+          2. Notes sincroniza com <strong style="color:var(--ink)">iCloud</strong> automaticamente<br>
+          3. Para restaurar → copie do Notes → cole acima → Restaurar
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────
+var DB={};
+var TARGETS={p:205,c:265,g:86,k:2650};
+var BMLS=750, BMAX=6;
+var cur=todayK(), dayType='', gymOpt='', exs=[], bts=0, dayRating=0;
+var mealOpts={}, mealChks={}, mealAlts={};
+
+var GYM={
+  A:{label:'Peito + Tríceps + Ombro',exercises:[
+    {n:'Supino reto com barra',s:'4',r:'10-12'},{n:'Supino inclinado com halteres',s:'3',r:'12'},
+    {n:'Crucifixo com halteres',s:'3',r:'12'},{n:'Desenvolvimento com halteres',s:'4',r:'10-12'},
+    {n:'Elevação lateral',s:'3',r:'15'},{n:'Tríceps corda (polia)',s:'4',r:'12'},{n:'Tríceps testa com barra',s:'3',r:'12'}
+  ]},
+  B:{label:'Costas + Bíceps',exercises:[
+    {n:'Puxada frontal (barra)',s:'4',r:'10-12'},{n:'Remada curvada com barra',s:'4',r:'10-12'},
+    {n:'Remada unilateral (serrote)',s:'3',r:'12'},{n:'Pulldown pegada neutra',s:'3',r:'12'},
+    {n:'Rosca direta com barra',s:'4',r:'10-12'},{n:'Rosca alternada com halteres',s:'3',r:'12'}
+  ]},
+  C:{label:'Perna + Glúteo + Core',exercises:[
+    {n:'Agachamento livre',s:'4',r:'10-12'},{n:'Leg press 45°',s:'4',r:'12-15'},
+    {n:'Cadeira extensora',s:'3',r:'15'},{n:'Stiff (terra romeno)',s:'4',r:'10-12'},
+    {n:'Cadeira flexora',s:'3',r:'12'},{n:'Elevação pélvica (glúteo)',s:'4',r:'15'},{n:'Prancha',s:'3',r:'45s'}
+  ]}
+};
+
+var MEALS=[
+  {id:'cafe',name:'Café da Manhã',time:'07:00',options:[
+    {label:'Op.1',desc:'Omelete + Pão',kcal:570,tip:'💡 Whey no café com leite = cappuccino proteico.',foods:[
+      {n:'Omelete (3 ovos + 2 claras + queijo mussarela)',q:'280g',p:'36g'},{n:'Pão francês',q:'2 unid',p:'7g'},
+      {n:'Requeijão cremoso light',q:'30g',p:'4g'},{n:'Whey no café com leite',q:'30g pó',p:'23g'},{n:'Manga ou fruta da preferência',q:'150g',p:'1g'}]},
+    {label:'Op.2',desc:'Tapioca + Frango',kcal:520,tip:'💡 Frango desfiado preparado domingo. 10 min.',foods:[
+      {n:'Tapioca com frango + queijo mussarela',q:'2 unid',p:'40g'},{n:'Queijo cottage com morango',q:'150g+80g',p:'18g'},{n:'Café preto',q:'200ml',p:'—'}]},
+    {label:'Op.3',desc:'Panqueca Proteica',kcal:560,tip:'💡 2 ovos + 30g whey + 30g aveia + leite. Bate e frita.',foods:[
+      {n:'Panqueca proteica (whey+ovo+aveia)',q:'3 unid',p:'38g'},{n:'Mel + morango fatiado',q:'10g+80g',p:'1g'},{n:'Café com leite desnatado',q:'200ml',p:'7g'}]}
+  ]},
+  {id:'lanche',name:'Lanche Manhã',time:'10:00',options:[
+    {label:'Op.1',desc:'Mousse de Whey',kcal:285,tip:'✅ Iogurte + whey + fruta. Prepare em pote e leve.',foods:[
+      {n:'Iogurte grego integral',q:'200g',p:'20g'},{n:'Whey misturado no iogurte',q:'15g pó',p:'12g'},{n:'Morango ou manga',q:'100g',p:'1g'},{n:'Castanha de caju',q:'20g',p:'4g'}]},
+    {label:'Op.2',desc:'Shake Chocolate',kcal:260,tip:'🥤 Whey + cacau + leite na coqueteleira. 30 seg.',foods:[
+      {n:'Whey protein + cacau em pó',q:'30g+1col',p:'23g'},{n:'Leite desnatado',q:'200ml',p:'7g'},{n:'Nozes',q:'20g',p:'4g'}]},
+    {label:'Op.3',desc:'Atum + Torradas',kcal:250,tip:'📦 Gaveta do escritório. Sem geladeira.',foods:[
+      {n:'Atum em água (lata)',q:'1 lata 130g',p:'30g'},{n:'Torradas',q:'4 unid',p:'3g'},{n:'Tomate cereja',q:'100g',p:'1g'}]}
+  ]},
+  {id:'almoco',name:'Almoço',time:'12:30',options:[
+    {label:'Op.1',desc:'Frango + Arroz',kcal:740,tip:'🍴 No restaurante: proteína + arroz + feijão + salada.',foods:[
+      {n:'Frango grelhado (coxa/sobrecoxa)',q:'220g',p:'48g'},{n:'Arroz branco',q:'180g coz.',p:'4g'},
+      {n:'Feijão carioca',q:'80g coz.',p:'5g'},{n:'Salada: alface + tomate + cenoura',q:'livre',p:'2g'},{n:'Azeite extra virgem',q:'1 col.',p:'—'}]},
+    {label:'Op.2',desc:'Salmão + Mandioca',kcal:700,tip:'🐟 Salmão 2x/semana. Rico em ômega-3.',foods:[
+      {n:'Salmão grelhado com ervas',q:'200g',p:'42g'},{n:'Mandioca cozida',q:'150g',p:'2g'},{n:'Feijão preto',q:'80g coz.',p:'5g'},{n:'Salada: rúcula + tomate',q:'livre',p:'2g'}]},
+    {label:'Op.3',desc:'Contrafilé + Arroz',kcal:760,tip:'🥩 Carne vermelha 2-3x/semana.',foods:[
+      {n:'Contrafilé grelhado',q:'200g',p:'42g'},{n:'Arroz branco',q:'180g coz.',p:'4g'},{n:'Feijão + couve refogada',q:'80g+60g',p:'7g'},{n:'Salada + azeite',q:'livre',p:'2g'}]}
+  ]},
+  {id:'pre',name:'Pré-Treino',time:'16:30',options:[
+    {label:'Op.1',desc:'Batata + Frango',kcal:370,tip:'⚡ 60min antes. Creatina 5g todo dia.',foods:[
+      {n:'Batata doce cozida com canela',q:'200g',p:'3g'},{n:'Peito de frango grelhado',q:'150g',p:'39g'},{n:'Creatina 5g + café preto',q:'200ml',p:'—'}]},
+    {label:'Op.2',desc:'Rap + Whey',kcal:350,tip:'🌯 Prepare em casa, leve na mochila.',foods:[
+      {n:'Wrap com peito de peru + queijo + tomate',q:'1 grande',p:'28g'},{n:'Whey protein (shake)',q:'20g pó',p:'15g'},{n:'Café preto',q:'200ml',p:'—'}]},
+    {label:'Op.3',desc:'Batata + Atum',kcal:320,tip:'🐟 Energia limpa e duradoura.',foods:[
+      {n:'Batata doce assada',q:'150g',p:'3g'},{n:'Atum em água (lata)',q:'1 lata 130g',p:'30g'},{n:'Requeijão light',q:'20g',p:'3g'}]}
+  ]},
+  {id:'pos',name:'Pós-Treino / Jantar',time:'19:30',options:[
+    {label:'Op.1',desc:'Frango + Arroz',kcal:460,tip:'💪 Whey logo após o treino.',foods:[
+      {n:'Whey protein (shake imediato)',q:'40g pó',p:'30g'},{n:'Banana nanica',q:'1 unid',p:'1g'},
+      {n:'Frango + arroz + abobrinha',q:'180g+100g+80g',p:'48g'},{n:'Queijo parmesão ralado',q:'20g',p:'7g'}]},
+    {label:'Op.2',desc:'Salmão + Batata',kcal:480,tip:'🐟 Proteína + ômega-3 para recuperação.',foods:[
+      {n:'Salmão grelhado',q:'180g',p:'38g'},{n:'Batata inglesa cozida',q:'150g',p:'3g'},{n:'Brócolis refogado no alho',q:'100g',p:'4g'},{n:'Queijo parmesão',q:'20g',p:'7g'}]},
+    {label:'Op.3',desc:'X-Burger Proteico',kcal:580,tip:'🍔 Patinho moído + ovo + queijo.',foods:[
+      {n:'Hambúrguer de patinho (caseiro)',q:'180g',p:'38g'},{n:'Pão francês',q:'1 unid',p:'4g'},{n:'Queijo mussarela + ovo estrelado',q:'40g+1unid',p:'19g'},{n:'Batata doce airfryer',q:'100g',p:'2g'}]}
+  ]},
+  {id:'ceia',name:'Ceia',time:'21:30',options:[
+    {label:'Op.1',desc:'Cottage + Ovos',kcal:310,tip:'🌙 Caseína de digestão lenta. Anabolismo noturno.',foods:[
+      {n:'Queijo cottage',q:'150g',p:'17g'},{n:'Ovos cozidos',q:'2 unid',p:'12g'},{n:'Nozes ou castanha de caju',q:'20g',p:'4g'}]},
+    {label:'Op.2',desc:'Iogurte + Whey',kcal:300,tip:'🥄 Misture tudo. Cremoso como sobremesa proteica.',foods:[
+      {n:'Iogurte grego integral',q:'200g',p:'20g'},{n:'Whey protein misturado',q:'15g pó',p:'12g'},{n:'Pasta de amendoim (sem açúcar)',q:'30g',p:'7g'}]},
+    {label:'Op.3',desc:'Omelete + Abacate',kcal:290,tip:'🥑 Sem carbo à noite. Ideal para queima de gordura.',foods:[
+      {n:'Omelete (3 claras + 1 ovo + queijo)',q:'200g',p:'28g'},{n:'Abacate',q:'80g',p:'1g'},{n:'Queijo cottage (extra)',q:'50g',p:'6g'}]}
+  ]}
+];
+
+// ── UTILS ────────────────────────────────────────────────
+function todayK(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function p2(n){return n<10?'0'+n:''+n;}
+function k2d(k){var a=k.split('-');return new Date(+a[0],+a[1]-1,+a[2],12);}
+function addDays(k,n){var d=k2d(k);d.setDate(d.getDate()+n);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function fmtK(k){var d=k2d(k);var days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];var m=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];return{main:d.getDate()+' '+m[d.getMonth()],sub:days[d.getDay()].toUpperCase()};}
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── LOCALSTORAGE ─────────────────────────────────────────
+function lsLoad(){try{var s=localStorage.getItem('diario_v2');if(s)DB=JSON.parse(s);}catch(e){DB={};}}
+function lsSave(){try{localStorage.setItem('diario_v2',JSON.stringify(DB));}catch(e){}}
+
+// ── PAGES ────────────────────────────────────────────────
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  el('pg-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='hist') renderHist();
+  if(id==='resumo') renderResumo();
+}
+
+// ── CARD TOGGLE ──────────────────────────────────────────
+function togCard(hdr){
+  var b=hdr.nextElementSibling,ch=hdr.querySelector('.chev');
+  var o=b.classList.toggle('open');
+  if(ch)ch.classList.toggle('open',o);
+}
+
+// ── DATE ─────────────────────────────────────────────────
+function changeDay(n){cur=addDays(cur,n);loadDay();}
+function loadDay(){
+  var D=DB[cur]||{};
+  bts=D.bts||0;dayType=D.dayType||'';gymOpt=D.gymOpt||'';
+  exs=JSON.parse(JSON.stringify(D.exs||[]));dayRating=D.rating||0;
+  mealOpts=JSON.parse(JSON.stringify(D.mealOpts||{}));
+  mealChks=JSON.parse(JSON.stringify(D.mealChks||{}));
+  mealAlts=JSON.parse(JSON.stringify(D.mealAlts||{}));
+  // date label
+  var f=fmtK(cur);
+  el('d-label').textContent=f.main;
+  el('d-sub').textContent=f.sub+(cur===todayK()?' · HOJE':'');
+  // render all
+  renderBts();renderDtype();renderMeals();
+  el('c-tipo').value=D.ctipo||'';el('c-dur').value=D.cdur||'';el('c-bpm').value=D.cbpm||'';
+  el('mp').value=D.m&&D.m.p?D.m.p:'';el('mc').value=D.m&&D.m.c?D.m.c:'';
+  el('mg').value=D.m&&D.m.g?D.m.g:'';el('mk').value=D.m&&D.m.k?D.m.k:'';
+  updMacros();
+  el('wp-inp').value=D.wt||'';updWeight();
+  el('d-nota').value=D.nota||'';el('d-sono').value=D.sono||'';
+  document.querySelectorAll('.rate-btn').forEach(function(b,i){b.classList.toggle('on',i+1===dayRating);});
+  el('save-msg').textContent='';
+}
+
+// ── WATER ────────────────────────────────────────────────
+function renderBts(){
+  var wrap=el('bottles');wrap.innerHTML='';
+  for(var i=0;i<BMAX;i++){
+    var b=document.createElement('div');
+    b.className='bottle'+(i<bts?' on':'');
+    b.innerHTML='<span style="font-size:22px">🫙</span><span>750ml</span>';
+    b.onclick=(function(idx){return function(){bts=(idx<bts)?idx:idx+1;renderBts();updWBadge();};})(i);
+    wrap.appendChild(b);
+  }
+  updWBadge();
+}
+function updWBadge(){
+  var L=(bts*BMLS/1000).toFixed(2).replace(/\.?0+$/,'')||'0';
+  el('w-liters').textContent=L+' L';
+  el('w-badge').textContent=L+'L / 4L';
+  el('w-bar').style.width=Math.min(100,bts/BMAX*100)+'%';
+}
+
+// ── TRAINING ─────────────────────────────────────────────
+function setDtype(t,btn){
+  dayType=t;
+  document.querySelectorAll('.dtype').forEach(function(b){b.className='dtype';});
+  var map={gym:'sg',cardio:'sc',ambos:'sa',descanso:'sd'};
+  btn.className='dtype '+(map[t]||'');
+  el('gym-sec').style.display=(t==='gym'||t==='ambos')?'':'none';
+  el('cardio-sec').style.display=(t==='cardio'||t==='ambos')?'':'none';
+  el('descanso-sec').style.display=(t==='descanso')?'':'none';
+  var nm={gym:'🏋️ Musculação',cardio:'🏃 Cardio',ambos:'🏋️+🏃 Ambos',descanso:'😴 Descanso'};
+  el('t-badge').textContent=nm[t]||'—';
+}
+function renderDtype(){
+  document.querySelectorAll('.dtype').forEach(function(b){b.className='dtype';});
+  el('gym-sec').style.display='none';el('cardio-sec').style.display='none';el('descanso-sec').style.display='none';
+  el('t-badge').textContent='—';
+  if(dayType){
+    document.querySelectorAll('.dtype').forEach(function(b){
+      if((b.getAttribute('onclick')||'').indexOf("'"+dayType+"'")>-1)setDtype(dayType,b);
+    });
+    if(gymOpt)renderGymOpt();
+  }
+}
+function setGymOpt(opt,btn){
+  gymOpt=opt;
+  document.querySelectorAll('.opt-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  if(exs.length===0&&GYM[opt])exs=GYM[opt].exercises.map(function(e){return{n:e.n,s:e.s,r:e.r,w:''};});
+  renderGymSugg();renderExs();
+}
+function renderGymOpt(){
+  document.querySelectorAll('.opt-btn').forEach(function(b){
+    if((b.getAttribute('onclick')||'').indexOf("'"+gymOpt+"'")>-1){b.classList.add('on');}
+  });
+  renderGymSugg();renderExs();
+}
+function renderGymSugg(){
+  var sugg=el('gym-sugg');
+  if(!gymOpt||!GYM[gymOpt]){sugg.innerHTML='';return;}
+  var g=GYM[gymOpt];
+  var h='<div class="sugg"><div class="sugg-title">TREINO '+gymOpt+' — '+esc(g.label)+'</div>';
+  g.exercises.forEach(function(e,i){h+='<div class="sugg-ex"><span class="sugg-ex-name">'+esc(e.n)+'</span><span class="sugg-ex-det">'+esc(e.s)+'×'+esc(e.r)+'</span></div>';});
+  h+='</div>';sugg.innerHTML=h;
+}
+function addEx(){exs.push({n:'',s:'',r:'',w:''});renderExs();}
+function remEx(i){exs.splice(i,1);renderExs();}
+function renderExs(){
+  var list=el('ex-list');list.innerHTML='';
+  exs.forEach(function(e,i){
+    var row=document.createElement('div');row.className='ex-row';
+    row.innerHTML='<input class="ex-name" type="text" placeholder="Exercício" value="'+esc(e.n||'')+'" oninput="exs['+i+'].n=this.value">'+
+      '<input class="ex-num" type="number" placeholder="4" value="'+esc(e.s||'')+'" oninput="exs['+i+'].s=this.value">'+
+      '<input class="ex-num" type="number" placeholder="12" value="'+esc(e.r||'')+'" oninput="exs['+i+'].r=this.value">'+
+      '<input class="ex-num" type="number" placeholder="—" value="'+esc(e.w||'')+'" oninput="exs['+i+'].w=this.value">'+
+      '<button class="ex-del" onclick="remEx('+i+')">×</button>';
+    list.appendChild(row);
+  });
+}
+
+// ── MEALS ────────────────────────────────────────────────
+function renderMeals(){
+  var list=el('meal-list');list.innerHTML='';
+  MEALS.forEach(function(m){
+    var oi=mealOpts[m.id]||0,chk=mealChks[m.id]||false,alt=mealAlts[m.id]||'';
+    var opt=m.options[oi];
+    // option tabs
+    var tabs='<div class="meal-opts">';
+    m.options.forEach(function(o,i){tabs+='<button class="meal-opt'+(oi===i?' on':'')+'" onclick="setMealOpt(\''+m.id+'\','+i+',this)"><span class="mo-label">'+esc(o.label)+'</span><span class="mo-desc">'+esc(o.desc)+'</span></button>';});
+    tabs+='</div>';
+    // foods
+    var foods='';
+    m.options.forEach(function(o,i){
+      foods+='<div class="meal-opt-content'+(oi===i?' on':'')+'" id="moc-'+m.id+'-'+i+'">';
+      foods+='<span class="lbl">O QUE COMER</span>';
+      o.foods.forEach(function(f){foods+='<div class="food-row"><span class="food-name">'+esc(f.n)+' <span class="food-qty">'+esc(f.q)+'</span></span><span class="food-prot">'+esc(f.p)+'</span></div>';});
+      if(o.tip)foods+='<div class="food-tip">'+esc(o.tip)+'</div>';
+      foods+='</div>';
+    });
+    var block=document.createElement('div');
+    block.className='meal-block';
+    block.innerHTML=
+      '<div class="meal-h" onclick="togMeal(\''+m.id+'\',this)">'+
+        '<div class="meal-hl">'+
+          '<div class="m-chk'+(chk?' on':'')+'" id="mchk-'+m.id+'" onclick="event.stopPropagation();togChk(\''+m.id+'\')">'+(chk?'✓':'')+'</div>'+
+          '<div class="meal-info"><div class="mname">'+esc(m.name)+'</div><div class="mtime">'+esc(m.time)+'</div></div>'+
+        '</div>'+
+        '<div class="meal-hr"><span class="meal-kcal" id="mkcal-'+m.id+'">~'+opt.kcal+' kcal</span><span class="m-chev">▼</span></div>'+
+      '</div>'+
+      '<div class="meal-b" id="mb-'+m.id+'">'+
+        tabs+foods+
+        '<div class="alt-area"><span class="lbl">✎ ANOTAR ALTERAÇÃO</span>'+
+        '<textarea class="alt-inp" id="malt-'+m.id+'" rows="2" placeholder="O que mudou? Ex: troquei frango por atum…">'+esc(alt)+'</textarea></div>'+
+      '</div>';
+    list.appendChild(block);
+  });
+  updMBadge();
+}
+function togMeal(id,hdr){var b=el('mb-'+id),ch=hdr.querySelector('.m-chev');var o=b.classList.toggle('open');if(ch)ch.classList.toggle('open',o);}
+function togChk(id){var c=el('mchk-'+id),on=!c.classList.contains('on');c.classList.toggle('on',on);c.textContent=on?'✓':'';mealChks[id]=on;updMBadge();}
+function setMealOpt(mid,oi,btn){
+  mealOpts[mid]=oi;
+  btn.parentElement.querySelectorAll('.meal-opt').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var body=el('mb-'+mid);
+  body.querySelectorAll('.meal-opt-content').forEach(function(c,i){c.classList.toggle('on',i===oi);});
+  var m=MEALS.find(function(x){return x.id===mid;});
+  if(m)el('mkcal-'+mid).textContent='~'+m.options[oi].kcal+' kcal';
+}
+function updMBadge(){var done=0;MEALS.forEach(function(m){if(mealChks[m.id])done++;});el('m-badge').textContent=done+'/'+MEALS.length;}
+function getMealAlts(){var o={};MEALS.forEach(function(m){var e=el('malt-'+m.id);o[m.id]=e?e.value:'';});return o;}
+
+// ── MACROS ───────────────────────────────────────────────
+function updMacros(){
+  var p=+el('mp').value||0,c=+el('mc').value||0,g=+el('mg').value||0,k=+el('mk').value||0;
+  el('bp').style.width=Math.min(100,p/TARGETS.p*100)+'%';el('vp').textContent=p+'/'+TARGETS.p+'g';
+  el('bc').style.width=Math.min(100,c/TARGETS.c*100)+'%';el('vc').textContent=c+'/'+TARGETS.c+'g';
+  el('bg').style.width=Math.min(100,g/TARGETS.g*100)+'%';el('vg').textContent=g+'/'+TARGETS.g+'g';
+  el('bk').style.width=Math.min(100,k/TARGETS.k*100)+'%';el('vk').textContent=k+'/'+TARGETS.k;
+}
+
+// ── WEIGHT ───────────────────────────────────────────────
+function updWeight(){
+  var w=+el('wp-inp').value||0;
+  el('wp-badge').textContent=w?w.toFixed(1)+' kg':'— kg';
+  if(w){var d=(w-100).toFixed(1);el('w-diff').textContent=d>0?d+'kg faltam':'🎯 Meta!';el('w-diff').style.color=d>0?'var(--mu2)':'var(--gr)';}
+  else el('w-diff').textContent='— faltam';
+}
+
+// ── RATING ───────────────────────────────────────────────
+function setRate(r,btn){dayRating=r;document.querySelectorAll('.rate-btn').forEach(function(b,i){b.classList.toggle('on',i+1===r);});}
+
+// ── SAVE ─────────────────────────────────────────────────
+function saveDay(){
+  DB[cur]={key:cur,bts:bts,dayType:dayType,gymOpt:gymOpt,exs:JSON.parse(JSON.stringify(exs)),
+    ctipo:el('c-tipo').value,cdur:el('c-dur').value,cbpm:el('c-bpm').value,
+    mealOpts:JSON.parse(JSON.stringify(mealOpts)),mealChks:JSON.parse(JSON.stringify(mealChks)),
+    mealAlts:getMealAlts(),m:{p:+el('mp').value||0,c:+el('mc').value||0,g:+el('mg').value||0,k:+el('mk').value||0},
+    wt:+el('wp-inp').value||0,nota:el('d-nota').value,rating:dayRating,sono:+el('d-sono').value||0};
+  lsSave();
+  el('save-msg').textContent='✓ Salvo!';
+  setTimeout(function(){el('save-msg').textContent='';},2000);
+}
+
+// ── HISTORY ──────────────────────────────────────────────
+function renderHist(){
+  var list=el('hist-list'),keys=Object.keys(DB).sort().reverse();
+  if(!keys.length){list.innerHTML='<div class="h-empty">Nenhum dia salvo ainda.<br>Comece hoje 💪</div>';return;}
+  list.innerHTML='';
+  var emj=['','😩','😕','😐','🙂','💪'],tm={gym:'🏋️',cardio:'🏃',ambos:'🏋️+🏃',descanso:'😴'};
+  keys.forEach(function(k){
+    var D=DB[k],f=fmtK(k);
+    var done=MEALS.filter(function(m){return D.mealChks&&D.mealChks[m.id];}).length;
+    var wL=((D.bts||0)*BMLS/1000).toFixed(1);
+    var chips='';
+    if(D.dayType&&tm[D.dayType])chips+='<span class="hchip g">'+tm[D.dayType]+(D.gymOpt?' '+D.gymOpt:'')+'</span>';
+    chips+='<span class="hchip b">💧'+wL+'L</span>';
+    chips+='<span class="hchip a">🍽️'+done+'/6</span>';
+    if(D.wt)chips+='<span class="hchip o">⚖️'+D.wt+'kg</span>';
+    if(D.rating)chips+='<span style="font-size:12px">'+emj[D.rating]+'</span>';
+    var exH='',mH='',nH='';
+    if(D.exs&&D.exs.length)exH='<div class="h-sec"><div class="h-stitle">EXERCÍCIOS</div>'+D.exs.map(function(e){return'<div class="h-ex"><span>'+esc(e.n||'—')+'</span><span style="font-family:\'Fira Code\',monospace;font-size:11px;color:var(--mu2)">'+esc(e.s||'—')+'×'+esc(e.r||'—')+' · '+esc(e.w||'—')+'kg</span></div>';}).join('')+'</div>';
+    if(D.m&&D.m.p)mH='<div class="h-sec"><div class="h-stitle">MACROS</div><div style="font-family:\'Fira Code\',monospace;font-size:12px">P:<span style="color:var(--gr)">'+D.m.p+'g</span> C:<span style="color:var(--am)">'+D.m.c+'g</span> G:<span style="color:var(--bl)">'+D.m.g+'g</span> Kcal:<span style="color:var(--or)">'+D.m.k+'</span></div></div>';
+    if(D.nota)nH='<div class="h-sec"><div class="h-stitle">NOTA</div><div style="font-size:13px;color:var(--mu2);line-height:1.5">'+esc(D.nota)+'</div></div>';
+    var card=document.createElement('div');card.className='h-card';
+    card.innerHTML='<div class="h-head" onclick="togHB(this)"><span class="h-date">'+f.main+' <span style="font-size:11px;color:var(--mu2)">'+f.sub+'</span></span><div class="h-chips">'+chips+'</div></div><div class="h-body">'+exH+mH+nH+'</div>';
+    list.appendChild(card);
+  });
+}
+function togHB(h){h.nextElementSibling.classList.toggle('open');}
+
+// ── RESUMO ───────────────────────────────────────────────
+function renderResumo(){
+  var data=Object.values(DB).sort(function(a,b){return a.key>b.key?1:-1;}).slice(-30);
+  var wp=data.filter(function(d){return d.m&&d.m.p;}),ww=data.filter(function(d){return d.bts;}),ws=data.filter(function(d){return d.sono;});
+  el('dash-grid').innerHTML=[
+    ['Dias Salvos',data.length,'var(--gr)','últimos 30 dias'],
+    ['Média Proteína',wp.length?Math.round(wp.reduce(function(s,d){return s+d.m.p;},0)/wp.length)+'g':'—','var(--or)','g/dia · meta 205g'],
+    ['Média Água',ww.length?(ww.reduce(function(s,d){return s+d.bts*BMLS/1000;},0)/ww.length).toFixed(1)+'L':'—','var(--bl)','L/dia · meta 4L'],
+    ['Média Sono',ws.length?(ws.reduce(function(s,d){return s+d.sono;},0)/ws.length).toFixed(1)+'h':'—','var(--am)','h/noite · meta 8h'],
+  ].map(function(x){return'<div class="dash-box"><div class="dash-lbl">'+x[0]+'</div><div class="dash-val" style="color:'+x[2]+'">'+x[1]+'</div><div class="dash-sub">'+x[3]+'</div></div>';}).join('');
+
+  // streak
+  var sb=el('streak');sb.innerHTML='';
+  var today=new Date();today.setHours(0,0,0,0);
+  var dn=['D','S','T','Q','Q','S','S'];
+  for(var i=6;i>=0;i--){
+    var dd=new Date(today);dd.setDate(dd.getDate()-i);
+    var k2=dd.getFullYear()+'-'+p2(dd.getMonth()+1)+'-'+p2(dd.getDate());
+    var div=document.createElement('div');
+    div.className='s-day'+(DB[k2]?' done':'')+(i===0?' today':'');
+    div.textContent=dn[dd.getDay()];sb.appendChild(div);
+  }
+
+  // weight
+  var wd=data.filter(function(d){return d.wt>0;});
+  var wtg=el('w-trend'),wst=el('w-stats'),wl=el('w-list');
+  if(wd.length<2){wst.innerHTML='';wl.innerHTML='<div style="color:var(--mu2);font-family:\'Fira Code\',monospace;font-size:12px;text-align:center;padding:16px 0">Registre pelo menos 2 dias de peso.</div>';wtg.textContent='—';return;}
+  var fi=wd[0].wt,la=wd[wd.length-1].wt,df=(fi-la).toFixed(1);
+  wtg.textContent=la<fi?'↓ '+df+'kg':la>fi?'↑ '+Math.abs(df)+'kg':'= estável';
+  wst.innerHTML=[['INICIAL',fi+'kg','var(--mu2)'],['ATUAL',la+'kg','var(--or)'],['PERDIDO',(la<=fi?'-':'+')+Math.abs(fi-la).toFixed(1)+'kg',la<=fi?'var(--gr)':'var(--rd)'],['FALTA',Math.max(0,la-100).toFixed(1)+'kg','var(--gr)']].map(function(x){return'<div><div style="font-family:\'Fira Code\',monospace;font-size:9px;color:var(--mu2);margin-bottom:3px">'+x[0]+'</div><div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:18px;color:'+x[2]+'">'+x[1]+'</div></div>';}).join('');
+  var l7=wd.slice(-7).reverse();
+  wl.innerHTML='<span class="lbl">ÚLTIMOS REGISTROS</span>'+l7.map(function(d,i){var prev=l7[i+1],df2=prev?(d.wt-prev.wt).toFixed(1):null;var col=df2===null?'var(--mu)':+df2<0?'var(--gr)':+df2>0?'var(--rd)':'var(--mu)';var f=fmtK(d.key);return'<div class="wl-row"><span style="font-family:\'Fira Code\',monospace;font-size:11px;color:var(--mu2)">'+f.main+'</span><div style="display:flex;align-items:center;gap:10px">'+(df2!==null?'<span style="font-family:\'Fira Code\',monospace;font-size:11px;color:'+col+'">'+(+df2>0?'+':'')+df2+'kg</span>':'')+'<span style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:16px">'+d.wt+'kg</span></div></div>';}).join('');
+
+  // notes
+  var rn=el('r-notes'),nd=data.filter(function(d){return d.nota;}).slice(-5).reverse();
+  if(!nd.length){rn.innerHTML='<div style="color:var(--mu2);font-family:\'Fira Code\',monospace;font-size:12px">Nenhuma nota ainda.</div>';return;}
+  rn.innerHTML=nd.map(function(d){var f=fmtK(d.key);return'<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--bd)"><div style="font-family:\'Fira Code\',monospace;font-size:10px;color:var(--or);margin-bottom:4px">'+f.main.toUpperCase()+' · '+f.sub+'</div><div style="font-size:14px;color:var(--mu2);line-height:1.55">'+esc(d.nota)+'</div></div>';}).join('');
+}
+
+// ── BACKUP ───────────────────────────────────────────────
+function genBackup(){
+  var full=JSON.parse(JSON.stringify(DB));full[cur]={key:cur,bts:bts,dayType:dayType,gymOpt:gymOpt,
+    exs:JSON.parse(JSON.stringify(exs)),ctipo:el('c-tipo').value,cdur:el('c-dur').value,cbpm:el('c-bpm').value,
+    mealOpts:JSON.parse(JSON.stringify(mealOpts)),mealChks:JSON.parse(JSON.stringify(mealChks)),
+    mealAlts:getMealAlts(),m:{p:+el('mp').value||0,c:+el('mc').value||0,g:+el('mg').value||0,k:+el('mk').value||0},
+    wt:+el('wp-inp').value||0,nota:el('d-nota').value,rating:dayRating,sono:+el('d-sono').value||0};
+  var json=JSON.stringify({v:2,db:full,ts:new Date().toISOString()});
+  el('bk-code').value=json;
+  el('bk-code-wrap').style.display='';
+  el('bk-msg').textContent='✓ Código gerado! Selecione tudo e copie para o Notes.';
+  setTimeout(function(){el('bk-msg').textContent='';},4000);
+}
+function doRestore(){
+  var txt=el('bk-paste').value.trim();
+  try{
+    var p=JSON.parse(txt),data=p.db||p;
+    var count=Object.keys(data).length;
+    if(!count){el('bk-msg').textContent='⚠ Código inválido.';return;}
+    if(confirm('Importar '+count+' dias? Os dados serão mesclados.')){
+      Object.assign(DB,data);lsSave();loadDay();
+      el('bk-paste').value='';
+      el('bk-msg').textContent='✓ '+count+' dias restaurados com sucesso!';
+      setTimeout(function(){el('bk-msg').textContent='';},4000);
+    }
+  }catch(e){el('bk-msg').textContent='⚠ Erro — copie o código completo.';}
+}
+
+// ── INIT ─────────────────────────────────────────────────
+lsLoad();
+loadDay();
+</script>
+</body>
+</html>
